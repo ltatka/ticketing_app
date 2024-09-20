@@ -11,33 +11,38 @@ export const CreateIssueDefinition = DefineFunction({
   title: "Create GitHub issue",
   description: "Create a new GitHub issue in a repository",
   source_file: "functions/create_issue.ts", // The file with the exported function handler
+  // url: "https://github.com/ltatka/ticketing_app",
   input_parameters: {
     properties: {
       githubAccessTokenId: {
         type: Schema.slack.types.oauth2,
         oauth2_provider_key: "github",
       },
-      url: {
+      requestor: {
         type: Schema.types.string,
-        description: "Repository URL",
+        description: "requestor",
       },
       title: {
         type: Schema.types.string,
-        description: "Issue Title",
+        description: "Request Title",
       },
       description: {
         type: Schema.types.string,
-        description: "Issue Description",
+        description: "Request Description",
       },
-      assignees: {
+
+      urgency: {
         type: Schema.types.string,
-        description: "Assignees",
+        description: "Urgency level",
+        // items: { type: Schema.types.string },
+        // enum: ["URGENT", "ASAP", "Low Priority"],
       },
     },
     required: [
       "githubAccessTokenId",
-      "url",
+      "requestor",
       "title",
+      "urgency",
     ],
   },
   output_parameters: {
@@ -80,26 +85,30 @@ export default SlackFunction(
       "X-GitHub-Api-Version": "2022-11-28",
     };
 
-    const { url, title, description, assignees } = inputs;
+    const { requestor, title, description, urgency } = inputs;
 
     try {
-      const { hostname, pathname } = new URL(url);
-      const [_, owner, repo] = pathname.split("/");
+      // const owner = "ltatka";
+      // const repo = "my_issues";
+      const issueEndpoint =
+        `https://api.github.com/repos/ltatka/my_issues/issues`;
+
+      const requestorList = requestor.split(",").map((name: string) =>
+        name.trim()
+      );
+
+      // const [_, owner, repo] = pathname.split("/");
 
       // https://docs.github.com/en/enterprise-server@3.3/rest/guides/getting-started-with-the-rest-api
-      const apiURL = hostname === "github.com"
-        ? "api.github.com"
-        : `${hostname}/api/v3`;
-
-      // https://docs.github.com/en/rest/issues/issues#create-an-issue
-      const issueEndpoint = `https://${apiURL}/repos/${owner}/${repo}/issues`;
+      // const apiURL = hostname === "github.com"
+      //   ? "api.github.com"
+      //   : `${hostname}/api/v3`;
 
       const body = JSON.stringify({
         title,
         body: description,
-        assignees: assignees?.split(",").map((assignee: string) => {
-          return assignee.trim();
-        }),
+        requestor: requestorList,
+        urgency: urgency,
       });
 
       const issue = await fetch(issueEndpoint, {

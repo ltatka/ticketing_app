@@ -41,11 +41,9 @@ const issueFormData = CreateNewIssueWorkflow.addStep(
     description: "Create a new issue inside of a GitHub repository",
     fields: {
       elements: [{
-        name: "url",
-        title: "Repository URL",
-        description: "The GitHub URL of the repository",
+        name: "requestor",
+        title: "Your Name",
         type: Schema.types.string,
-        format: "url",
       }, {
         name: "title",
         title: "Issue title",
@@ -56,13 +54,14 @@ const issueFormData = CreateNewIssueWorkflow.addStep(
         type: Schema.types.string,
         long: true,
       }, {
-        name: "assignees",
-        title: "Issue assignees",
-        description:
-          "GitHub username(s) of the user(s) to assign the issue to (separated by commas)",
+        name: "urgency",
+        title: "Urgency",
+        // description:
+        //   "GitHub username(s) of the user(s) to assign the issue to (separated by commas)",
         type: Schema.types.string,
+        enum: ["URGENT", "ASAP", "Low Priority"],
       }],
-      required: ["url", "title"],
+      required: ["requestor", "title", "urgency"],
     },
   },
 );
@@ -82,10 +81,10 @@ const issue = CreateNewIssueWorkflow.addStep(CreateIssueDefinition, {
   githubAccessTokenId: {
     credential_source: "DEVELOPER",
   },
-  url: issueFormData.outputs.fields.url,
+  requestor: issueFormData.outputs.fields.requestor,
   title: issueFormData.outputs.fields.title,
   description: issueFormData.outputs.fields.description,
-  assignees: issueFormData.outputs.fields.assignees,
+  urgency: issueFormData.outputs.fields.urgency,
 });
 
 /**
