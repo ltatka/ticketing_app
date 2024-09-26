@@ -106,9 +106,10 @@ export default SlackFunction(
 
       const body = JSON.stringify({
         title,
-        body: description,
-        requestor: requestorList,
-        urgency: urgency,
+        body:
+          `Description: ${description}\n\nRequestor: ${requestorList}\nUrgency: ${urgency}`,
+        // requestor: requestorList,
+        // urgency: urgency,
       });
 
       const issue = await fetch(issueEndpoint, {
